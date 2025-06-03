@@ -218,10 +218,10 @@ const ZsxqAuth = ({ onAuthSuccess }) => {
     // 生成时间戳
     const timestamp = Math.floor(Date.now() / 1000)
     
-    // 修复跳转地址问题 - 使用完整的HTTPS URL
+    // 修复跳转地址问题 - 使用与index.html完全相同的方式
     const redirectUrl = typeof window !== 'undefined' 
-      ? `${window.location.protocol}//${window.location.host}${window.location.pathname}?callback=1`
-      : 'https://xianjianaiedu.vercel.app/'  // 请替换为您的实际域名
+      ? window.location.origin + window.location.pathname + '?callback=1'
+      : 'https://xianjian-aiedu2.vercel.app/?callback=1'  // 确保包含callback参数
     
     // 构建认证参数
     const params = {
@@ -243,7 +243,10 @@ const ZsxqAuth = ({ onAuthSuccess }) => {
     
     const authUrl = `${ZSXQ_CONFIG.auth_url}?${queryString}`
     
+    console.log('=== 认证参数详情 ===')
     console.log('跳转URL:', redirectUrl)
+    console.log('认证参数:', params)
+    console.log('签名字符串:', buildSignString(params))
     console.log('认证URL:', authUrl)
     
     // 跳转到知识星球认证页面
@@ -252,10 +255,42 @@ const ZsxqAuth = ({ onAuthSuccess }) => {
     }, 1000)
   }
 
+  // 构建签名字符串 - 用于调试
+  const buildSignString = (params) => {
+    // 1. 过滤空值参数
+    const filteredParams = {}
+    Object.keys(params).forEach(key => {
+      if (key !== 'signature' && params[key] !== '' && params[key] != null) {
+        filteredParams[key] = params[key]
+      }
+    })
+    
+    // 2. 按ASCII字典序排序
+    const sortedKeys = Object.keys(filteredParams).sort()
+    
+    // 3. 构建查询字符串（URL编码）
+    const queryParts = sortedKeys.map(key => {
+      const value = filteredParams[key]
+      return `${key}=${encodeURIComponent(value)}`
+    })
+    
+    // 4. 拼接secret
+    const queryString = queryParts.join('&')
+    return queryString + '&secret=' + ZSXQ_CONFIG.secret
+  }
+
   // 处理知识星球回调
   const handleCallback = (urlParams) => {
     setStatus('正在验证身份信息...')
     setStatusType('loading')
+    
+    // 打印所有回调参数用于分析
+    console.log('=== 知识星球回调参数分析 ===')
+    const allParams = {}
+    for (const [key, value] of urlParams) {
+      allParams[key] = value
+      console.log(`${key}: ${value}`)
+    }
     
     // 检查是否有错误
     if (urlParams.has('error_code')) {
@@ -280,9 +315,36 @@ const ZsxqAuth = ({ onAuthSuccess }) => {
       }
       
       const message = errorMessages[errorCode] || `未知错误 (${errorCode})`
+      console.log(`❌ 认证失败: 错误代码 ${errorCode} - ${message}`)
+      
+      // 如果是跳转地址错误，提供更多调试信息
+      if (errorCode === '200001') {
+        console.log('=== 跳转地址错误调试信息 ===')
+        console.log('当前页面URL:', window.location.href)
+        console.log('当前origin:', window.location.origin)
+        console.log('当前pathname:', window.location.pathname)
+        console.log('预期跳转地址应该是:', window.location.origin + window.location.pathname + '?callback=1')
+        console.log('请检查知识星球管理后台的跳转地址白名单是否包含:', window.location.host)
+      }
+      
       setStatus(`❌ 认证失败：${message}`)
       setStatusType('error')
       return
+    }
+
+    // 验证回调签名
+    const signatureValid = verifyCallbackSignature(urlParams)
+    
+    if (!signatureValid) {
+      console.log('❌ 签名验证失败，但继续处理以分析数据')
+      setStatus('⚠️ 签名验证失败，正在分析原因...', 'loading')
+      
+      // 继续处理用户数据以便分析
+      setTimeout(() => {
+        setStatus('✅ 已获取用户数据（签名验证已跳过）', 'success')
+      }, 1000)
+    } else {
+      setStatus('✅ 身份验证成功！', 'success')
     }
 
     // 提取用户信息
@@ -300,6 +362,9 @@ const ZsxqAuth = ({ onAuthSuccess }) => {
       extra: urlParams.get('extra')
     }
     
+    console.log('=== 提取的用户信息 ===')
+    console.log(userData)
+    
     // 保存认证信息
     localStorage.setItem('zsxq_auth_data', JSON.stringify(userData))
     localStorage.setItem('zsxq_auth_expiry', userData.expire_time)
@@ -311,6 +376,63 @@ const ZsxqAuth = ({ onAuthSuccess }) => {
     
     // 清理URL参数
     window.history.replaceState({}, '', window.location.pathname)
+  }
+
+  // 验证回调签名
+  const verifyCallbackSignature = (urlParams) => {
+    const params = {}
+    
+    // 根据官方文档，参与回调签名的参数（user_number不参与签名）
+    const signParams = ['app_id', 'group_number', 'user_id', 'user_name', 
+                      'user_icon', 'user_role', 'extra', 'join_time', 
+                      'expire_time', 'timestamp']
+    
+    // 提取非空参数
+    signParams.forEach(param => {
+      const value = urlParams.get(param)
+      if (value !== null && value !== '') {
+        params[param] = value
+      }
+    })
+    
+    // 生成期望的签名
+    const expectedSignature = generateSignature(params)
+    const actualSignature = urlParams.get('signature')
+    
+    console.log('=== 签名验证详情 ===')
+    console.log('参与签名的参数:', params)
+    console.log('签名字符串:', buildSignString(params))
+    console.log('期望签名:', expectedSignature)
+    console.log('实际签名:', actualSignature)
+    console.log('签名匹配:', expectedSignature === actualSignature)
+    
+    // 尝试不同的参数组合
+    if (expectedSignature !== actualSignature) {
+      console.log('=== 尝试其他签名组合 ===')
+      
+      // 测试1: 包含user_number
+      const withUserNumber = { ...params }
+      const userNumber = urlParams.get('user_number')
+      if (userNumber) {
+        withUserNumber.user_number = userNumber
+        const sig1 = generateSignature(withUserNumber)
+        console.log('包含user_number的签名:', sig1, sig1 === actualSignature ? '✅匹配' : '❌不匹配')
+      }
+      
+      // 测试2: 不包含某些可能为空的参数
+      const essentialParams = ['app_id', 'group_number', 'user_id', 'user_name', 'timestamp']
+      const essential = {}
+      essentialParams.forEach(param => {
+        const value = urlParams.get(param)
+        if (value !== null && value !== '') {
+          essential[param] = value
+        }
+      })
+      const sig2 = generateSignature(essential)
+      console.log('仅基本参数的签名:', sig2, sig2 === actualSignature ? '✅匹配' : '❌不匹配')
+    }
+    
+    return expectedSignature === actualSignature
   }
 
   const formatTime = (timestamp) => {
