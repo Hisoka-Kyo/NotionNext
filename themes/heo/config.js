@@ -51,7 +51,7 @@ const CONFIG = {
   // 个人资料底部按钮
   HEO_INFO_CARD_URL1: '/about',
   HEO_INFO_CARD_ICON1: 'fas fa-user',
-  HEO_INFO_CARD_URL2: '/images/heo/qrcode_for_gh_46d0a4d88e6f_258.jpg',
+  HEO_INFO_CARD_URL2: '/images/heo/qrcode_for_gh_46d0a4d88e6f_430.webp',
   HEO_INFO_CARD_ICON2: 'fa-brands fa-weixin',
   HEO_INFO_CARD_URL3: 'https://www.tangly1024.com',
   HEO_INFO_CARD_TEXT3: '了解更多',
