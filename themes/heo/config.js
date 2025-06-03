@@ -4,12 +4,12 @@ const CONFIG = {
 
   HEO_HOME_BANNER_ENABLE: true,
 
-  HEO_SITE_CREATE_TIME: '2021-09-21', // 建站日期，用于计算网站运行的第几天
+  HEO_SITE_CREATE_TIME: '2025-06-01', // 建站日期，用于计算网站运行的第几天
 
   // 首页顶部通知条滚动内容，如不需要可以留空 []
   HEO_NOTICE_BAR: [
-    { title: '欢迎来到我的博客', url: 'https://blog.tangly1024.com' },
-    { title: '访问文档中心获取更多帮助', url: 'https://docs.tangly1024.com' }
+    { title: '欢迎来到先见AI+EDU', url: 'https://www.xianjianaiedu.com/' },
+    { title: '加入知识星球获取全部资源', url: 'https://wx.zsxq.com/group/28882588512111' }
   ],
 
   // 英雄区左右侧组件颠倒位置
@@ -18,12 +18,12 @@ const CONFIG = {
   HEO_HERO_BODY_REVERSE: false,
 
   // 英雄区(首页顶部大卡)
-  HEO_HERO_TITLE_1: '分享编程',
-  HEO_HERO_TITLE_2: '与思维认知',
-  HEO_HERO_TITLE_3: 'TANGLY1024.COM',
-  HEO_HERO_TITLE_4: '新版上线',
-  HEO_HERO_TITLE_5: 'NotionNext4.0 轻松定制主题',
-  HEO_HERO_TITLE_LINK: 'https://tangly1024.com',
+  HEO_HERO_TITLE_1: '分享教育',
+  HEO_HERO_TITLE_2: '与人工智能',
+  HEO_HERO_TITLE_3: 'XIANJIANAIEDU.COM',
+  HEO_HERO_TITLE_4: '知识星球',
+  HEO_HERO_TITLE_5: '加入星球获取全站资源',
+  HEO_HERO_TITLE_LINK: 'https://wx.zsxq.com/group/28882588512111',
   // 英雄区遮罩文字
   HEO_HERO_COVER_TITLE: '随便逛逛',
 
@@ -43,7 +43,7 @@ const CONFIG = {
     '🔍 分享与热心帮助',
     '🤝 专修交互与设计',
     '🏃 脚踏实地行动派',
-    '🏠 智能家居小能手',
+    '🏠 智能教育小能手',
     '🤖️ 数码科技爱好者',
     '🧱 团队小组发动机'
   ],
@@ -117,10 +117,10 @@ const CONFIG = {
   ],
 
   HEO_SOCIAL_CARD: true, // 是否显示右侧，点击加入社群按钮
-  HEO_SOCIAL_CARD_TITLE_1: '交流频道',
-  HEO_SOCIAL_CARD_TITLE_2: '加入我们的社群讨论分享',
-  HEO_SOCIAL_CARD_TITLE_3: '点击加入社群',
-  HEO_SOCIAL_CARD_URL: 'https://docs.tangly1024.com/article/how-to-question',
+  HEO_SOCIAL_CARD_TITLE_1: '公众号',
+  HEO_SOCIAL_CARD_TITLE_2: '快人一步了解最新动态',
+  HEO_SOCIAL_CARD_TITLE_3: '点击关注公众号',
+  HEO_SOCIAL_CARD_URL: 'https://weixin.qq.com/r/mp/Gx1JUS-Ev3LArWsy90gJ',
 
   // 底部统计面板文案
   HEO_POST_COUNT_TITLE: '文章数:',
