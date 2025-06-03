@@ -20,7 +20,7 @@ const ZSXQ_CONFIG = {
 /**
  * 知识星球验证组件 - 全屏验证界面
  */
-const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
+const ZsxqAuth = ({ onAuthSuccess }) => {
   const [status, setStatus] = useState('')
   const [statusType, setStatusType] = useState('')
   const [userInfo, setUserInfo] = useState(null)
@@ -218,12 +218,17 @@ const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
     // 生成时间戳
     const timestamp = Math.floor(Date.now() / 1000)
     
+    // 修复跳转地址问题 - 使用完整的HTTPS URL
+    const redirectUrl = typeof window !== 'undefined' 
+      ? `${window.location.protocol}//${window.location.host}${window.location.pathname}?callback=1`
+      : 'https://xianjianaiedu.vercel.app/'  // 请替换为您的实际域名
+    
     // 构建认证参数
     const params = {
       app_id: ZSXQ_CONFIG.app_id,
       group_number: ZSXQ_CONFIG.group_number,
       extra: 'homepage_auth',
-      redirect_url: window.location.origin + window.location.pathname + '?callback=1',
+      redirect_url: redirectUrl,
       timestamp: timestamp
     }
     
@@ -237,6 +242,9 @@ const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
       .join('&')
     
     const authUrl = `${ZSXQ_CONFIG.auth_url}?${queryString}`
+    
+    console.log('跳转URL:', redirectUrl)
+    console.log('认证URL:', authUrl)
     
     // 跳转到知识星球认证页面
     setTimeout(() => {
@@ -323,31 +331,40 @@ const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
     onAuthSuccess(userInfo)
   }
 
-  const skipAuth = () => {
-    onSkip()
-  }
-
   return (
     <>
       <Head>
         <title>知识星球成员验证 - NotionNext</title>
         <meta name="description" content="知识星球成员身份验证" />
+        <style jsx global>{`
+          /* 确保验证界面完全覆盖所有内容，包括导航栏 */
+          html, body {
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          
+          /* 隐藏所有可能的页面元素 */
+          #__next > *:not(.zsxq-auth-overlay) {
+            display: none !important;
+          }
+        `}</style>
       </Head>
       
-      {/* 全屏验证界面 */}
-      <div style={{
+      {/* 全屏验证界面 - 完全覆盖所有内容 */}
+      <div className="zsxq-auth-overlay" style={{
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
-        minHeight: '100vh',
+        width: '100vw',
+        height: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        zIndex: 9999
+        zIndex: 999999,
+        overflow: 'auto'
       }}>
         <div style={{
           width: '90%',
@@ -357,7 +374,8 @@ const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
           borderRadius: '20px',
           padding: '40px 30px',
           boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-          textAlign: 'center'
+          textAlign: 'center',
+          margin: '20px'
         }}>
           <div style={{
             width: '80px',
@@ -397,7 +415,7 @@ const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
           {!showUserInfo ? (
             <div style={{ margin: '30px 0' }}>
               <p style={{ color: '#666', marginBottom: '20px' }}>
-                请进行知识星球成员身份验证后访问
+                此博客仅对知识星球成员开放，请先进行身份验证
               </p>
               
               <button
@@ -416,33 +434,20 @@ const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
                   display: 'inline-block',
                   margin: '10px'
                 }}
+                onMouseOver={(e) => {
+                  e.target.style.transform = 'translateY(-2px)'
+                  e.target.style.boxShadow = '0 10px 20px rgba(255, 107, 107, 0.3)'
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.transform = 'translateY(0)'
+                  e.target.style.boxShadow = 'none'
+                }}
               >
                 🔐 开始身份验证
               </button>
               
-              <button
-                onClick={skipAuth}
-                style={{
-                  background: '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  padding: '15px 30px',
-                  borderRadius: '25px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease',
-                  textDecoration: 'none',
-                  display: 'inline-block',
-                  margin: '10px'
-                }}
-              >
-                🏠 跳过验证
-              </button>
-              
               <p style={{ color: '#999', fontSize: '12px', marginTop: '15px' }}>
-                点击验证后将跳转到知识星球进行身份验证<br/>
-                或者点击跳过验证直接访问博客
+                点击后将跳转到知识星球进行身份验证
               </p>
             </div>
           ) : (
@@ -557,7 +562,6 @@ const AuthStatusBar = ({ userInfo, onLogout }) => {
 const Index = props => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
-  const [skipAuth, setSkipAuth] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -585,17 +589,12 @@ const Index = props => {
     setIsAuthenticated(true)
   }
 
-  const handleSkip = () => {
-    setSkipAuth(true)
-  }
-
   const handleLogout = () => {
     if (confirm('确定要退出登录吗？')) {
       localStorage.removeItem('zsxq_auth_data')
       localStorage.removeItem('zsxq_auth_expiry')
       setUserInfo(null)
       setIsAuthenticated(false)
-      setSkipAuth(false)
     }
   }
 
@@ -613,16 +612,17 @@ const Index = props => {
         alignItems: 'center',
         justifyContent: 'center',
         color: 'white',
-        fontSize: '18px'
+        fontSize: '18px',
+        zIndex: 999999
       }}>
         ⏳ 加载中...
       </div>
     )
   }
 
-  // 如果未认证且未跳过验证，显示全屏验证界面
-  if (!isAuthenticated && !skipAuth) {
-    return <ZsxqAuth onAuthSuccess={handleAuthSuccess} onSkip={handleSkip} />
+  // 如果未认证，显示全屏验证界面
+  if (!isAuthenticated) {
+    return <ZsxqAuth onAuthSuccess={handleAuthSuccess} />
   }
 
   // 显示原有的博客主页，并在顶部添加认证状态栏
@@ -633,7 +633,7 @@ const Index = props => {
       <AuthStatusBar userInfo={userInfo} onLogout={handleLogout} />
       
       {/* 主页内容 */}
-      <div style={{ marginTop: userInfo ? '40px' : '0' }}>
+      <div style={{ marginTop: '40px' }}>
         <DynamicLayout theme={theme} layoutName='LayoutIndex' {...props} />
       </div>
     </>
