@@ -49,11 +49,11 @@ const CONFIG = {
   ],
 
   // 个人资料底部按钮
-  HEO_INFO_CARD_URL1: '/about',
-  HEO_INFO_CARD_ICON1: 'fas fa-user',
-  HEO_INFO_CARD_URL2: '/images/heo/qrcode_for_gh_46d0a4d88e6f_430.webp',
+  HEO_INFO_CARD_URL1: 'https://www.xiaohongshu.com/user/profile/5c983779000000001000d22c?xsec_token=YB7KD3EorQEND9v7lrXbVnFBmCZDfo1UHmfw93Astd1Po=&xsec_source=app_share&xhsshare=CopyLink&appuid=5c983779000000001000d22c&apptime=1748962164&share_id=87650bb59b8a4834b802ad15b8a33fa2',
+  HEO_INFO_CARD_ICON1: 'fa-solid fa-book',
+  HEO_INFO_CARD_URL2: 'https://www.xianjianaiedu.com/article/20766738-8b3b-80f6-8951-f994bf30171e',
   HEO_INFO_CARD_ICON2: 'fa-brands fa-weixin',
-  HEO_INFO_CARD_URL3: 'https://www.tangly1024.com',
+  HEO_INFO_CARD_URL3: '/about',
   HEO_INFO_CARD_TEXT3: '了解更多',
 
   // 用户技能图标
