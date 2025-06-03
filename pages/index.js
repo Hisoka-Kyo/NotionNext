@@ -18,7 +18,7 @@ const ZSXQ_CONFIG = {
 }
 
 /**
- * 知识星球验证组件
+ * 知识星球验证组件 - 全屏验证界面
  */
 const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
   const [status, setStatus] = useState('')
@@ -331,14 +331,23 @@ const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
     <>
       <Head>
         <title>知识星球成员验证 - NotionNext</title>
+        <meta name="description" content="知识星球成员身份验证" />
       </Head>
+      
+      {/* 全屏验证界面 */}
       <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
         minHeight: '100vh',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        zIndex: 9999
       }}>
         <div style={{
           width: '90%',
@@ -498,6 +507,49 @@ const ZsxqAuth = ({ onAuthSuccess, onSkip }) => {
 }
 
 /**
+ * 认证状态栏组件 - 在博客页面顶部显示认证信息
+ */
+const AuthStatusBar = ({ userInfo, onLogout }) => {
+  if (!userInfo) return null
+
+  return (
+    <div style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      background: 'linear-gradient(45deg, #FF6B6B, #FF8E53)',
+      color: 'white',
+      padding: '8px 20px',
+      fontSize: '12px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      zIndex: 1000,
+      boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+    }}>
+      <span>
+        👤 欢迎，{userInfo.user_name} | 🌟 知识星球成员
+      </span>
+      <button
+        onClick={onLogout}
+        style={{
+          background: 'rgba(255,255,255,0.2)',
+          color: 'white',
+          border: 'none',
+          padding: '4px 12px',
+          borderRadius: '10px',
+          fontSize: '11px',
+          cursor: 'pointer'
+        }}
+      >
+        🚪 退出
+      </button>
+    </div>
+  )
+}
+
+/**
  * 首页布局
  * @param {*} props
  * @returns
@@ -506,6 +558,7 @@ const Index = props => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [userInfo, setUserInfo] = useState(null)
   const [skipAuth, setSkipAuth] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     // 检查本地存储的认证信息
@@ -523,6 +576,8 @@ const Index = props => {
         setIsAuthenticated(true)
       }
     }
+    
+    setIsLoading(false)
   }, [])
 
   const handleAuthSuccess = (userData) => {
@@ -534,14 +589,55 @@ const Index = props => {
     setSkipAuth(true)
   }
 
-  // 如果未认证且未跳过验证，显示验证界面
+  const handleLogout = () => {
+    if (confirm('确定要退出登录吗？')) {
+      localStorage.removeItem('zsxq_auth_data')
+      localStorage.removeItem('zsxq_auth_expiry')
+      setUserInfo(null)
+      setIsAuthenticated(false)
+      setSkipAuth(false)
+    }
+  }
+
+  // 加载中
+  if (isLoading) {
+    return (
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        fontSize: '18px'
+      }}>
+        ⏳ 加载中...
+      </div>
+    )
+  }
+
+  // 如果未认证且未跳过验证，显示全屏验证界面
   if (!isAuthenticated && !skipAuth) {
     return <ZsxqAuth onAuthSuccess={handleAuthSuccess} onSkip={handleSkip} />
   }
 
-  // 显示原有的博客主页
+  // 显示原有的博客主页，并在顶部添加认证状态栏
   const theme = siteConfig('THEME', BLOG.THEME, props.NOTION_CONFIG)
-  return <DynamicLayout theme={theme} layoutName='LayoutIndex' {...props} />
+  return (
+    <>
+      {/* 认证状态栏 */}
+      <AuthStatusBar userInfo={userInfo} onLogout={handleLogout} />
+      
+      {/* 主页内容 */}
+      <div style={{ marginTop: userInfo ? '40px' : '0' }}>
+        <DynamicLayout theme={theme} layoutName='LayoutIndex' {...props} />
+      </div>
+    </>
+  )
 }
 
 /**
