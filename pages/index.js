@@ -459,16 +459,42 @@ const ZsxqAuth = ({ onAuthSuccess }) => {
         <title>知识星球成员验证 - NotionNext</title>
         <meta name="description" content="知识星球成员身份验证" />
         <style jsx global>{`
-          /* 确保验证界面完全覆盖所有内容，包括导航栏 */
+          /* 强制隐藏所有页面内容，确保验证界面完全覆盖 */
           html, body {
             overflow: hidden !important;
             margin: 0 !important;
             padding: 0 !important;
+            height: 100% !important;
           }
           
-          /* 隐藏所有可能的页面元素 */
+          /* 隐藏所有可能的页面元素，包括导航栏 */
           #__next > *:not(.zsxq-auth-overlay) {
             display: none !important;
+            visibility: hidden !important;
+          }
+          
+          /* 强制隐藏可能的导航栏和页面组件 */
+          nav, header, .navbar, .navigation, .menu, .header {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          
+          /* 隐藏主题相关的所有组件 */
+          .theme-wrapper, .layout-wrapper, .page-wrapper {
+            display: none !important;
+            visibility: hidden !important;
+          }
+          
+          /* 确保验证界面在最顶层 */
+          .zsxq-auth-overlay {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 999999 !important;
+            display: flex !important;
+            visibility: visible !important;
           }
         `}</style>
       </Head>
@@ -634,49 +660,6 @@ const ZsxqAuth = ({ onAuthSuccess }) => {
 }
 
 /**
- * 认证状态栏组件 - 在博客页面顶部显示认证信息
- */
-const AuthStatusBar = ({ userInfo, onLogout }) => {
-  if (!userInfo) return null
-
-  return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      background: 'linear-gradient(45deg, #FF6B6B, #FF8E53)',
-      color: 'white',
-      padding: '8px 20px',
-      fontSize: '12px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      zIndex: 1000,
-      boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-    }}>
-      <span>
-        👤 欢迎，{userInfo.user_name} | 🌟 知识星球成员
-      </span>
-      <button
-        onClick={onLogout}
-        style={{
-          background: 'rgba(255,255,255,0.2)',
-          color: 'white',
-          border: 'none',
-          padding: '4px 12px',
-          borderRadius: '10px',
-          fontSize: '11px',
-          cursor: 'pointer'
-        }}
-      >
-        🚪 退出
-      </button>
-    </div>
-  )
-}
-
-/**
  * 首页布局
  * @param {*} props
  * @returns
@@ -706,39 +689,63 @@ const Index = props => {
     setIsLoading(false)
   }, [])
 
+  // 键盘快捷键退出登录功能
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    const handleKeydown = (event) => {
+      // Ctrl+Shift+L 退出登录
+      if (event.ctrlKey && event.shiftKey && event.key === 'L') {
+        event.preventDefault()
+        if (confirm('确定要退出知识星球登录吗？\n\n快捷键: Ctrl+Shift+L')) {
+          localStorage.removeItem('zsxq_auth_data')
+          localStorage.removeItem('zsxq_auth_expiry')
+          setUserInfo(null)
+          setIsAuthenticated(false)
+          console.log('已退出知识星球登录')
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeydown)
+    
+    // 在控制台提示快捷键
+    console.log('💡 提示：按 Ctrl+Shift+L 可以退出知识星球登录')
+
+    return () => {
+      window.removeEventListener('keydown', handleKeydown)
+    }
+  }, [isAuthenticated])
+
   const handleAuthSuccess = (userData) => {
     setUserInfo(userData)
     setIsAuthenticated(true)
   }
 
-  const handleLogout = () => {
-    if (confirm('确定要退出登录吗？')) {
-      localStorage.removeItem('zsxq_auth_data')
-      localStorage.removeItem('zsxq_auth_expiry')
-      setUserInfo(null)
-      setIsAuthenticated(false)
-    }
-  }
-
   // 加载中
   if (isLoading) {
     return (
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
-        fontSize: '18px',
-        zIndex: 999999
-      }}>
-        ⏳ 加载中...
-      </div>
+      <>
+        <Head>
+          <title>加载中 - NotionNext</title>
+        </Head>
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: '18px',
+          zIndex: 999999
+        }}>
+          ⏳ 加载中...
+        </div>
+      </>
     )
   }
 
@@ -747,17 +754,15 @@ const Index = props => {
     return <ZsxqAuth onAuthSuccess={handleAuthSuccess} />
   }
 
-  // 显示原有的博客主页，并在顶部添加认证状态栏
+  // 认证成功后，显示正常的博客主页
   const theme = siteConfig('THEME', BLOG.THEME, props.NOTION_CONFIG)
   return (
     <>
-      {/* 认证状态栏 */}
-      <AuthStatusBar userInfo={userInfo} onLogout={handleLogout} />
-      
-      {/* 主页内容 */}
-      <div style={{ marginTop: '40px' }}>
-        <DynamicLayout theme={theme} layoutName='LayoutIndex' {...props} />
-      </div>
+      <Head>
+        <title>NotionNext 博客</title>
+        <meta name="description" content="NotionNext 博客 - 知识星球成员专享" />
+      </Head>
+      <DynamicLayout theme={theme} layoutName='LayoutIndex' {...props} />
     </>
   )
 }
