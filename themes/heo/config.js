@@ -28,7 +28,7 @@ const CONFIG = {
   HEO_HERO_COVER_TITLE: '随便逛逛',
 
   // 英雄区显示三个置顶分类
-  HEO_HERO_CATEGORY_1: { title: 'AI宝库', url: '' },
+  HEO_HERO_CATEGORY_1: { title: 'AI宝库', url: 'www.xianjianinfo.com' },
   HEO_HERO_CATEGORY_2: { title: '教学工具', url: '/tag/工具' },
   HEO_HERO_CATEGORY_3: { title: '实用教程', url: '/tag/教程' },
 
