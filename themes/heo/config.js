@@ -8,7 +8,7 @@ const CONFIG = {
 
   // 首页顶部通知条滚动内容，如不需要可以留空 []
   HEO_NOTICE_BAR: [
-    { title: '欢迎来到先见AI+EDU', url: 'https://www.xianjianaiedu.com/' },
+    { title: '欢迎来到先见AI+EDU', url: 'https://www.xianjianinfo.com/' },
     { title: '加入知识星球获取全部资源', url: 'https://wx.zsxq.com/group/28882588512111' }
   ],
 
@@ -28,7 +28,7 @@ const CONFIG = {
   HEO_HERO_COVER_TITLE: '随便逛逛',
 
   // 英雄区显示三个置顶分类
-  HEO_HERO_CATEGORY_1: { title: 'AI宝库', url: 'https://www.xianjianinfo.com' },
+  HEO_HERO_CATEGORY_1: { title: 'AI宝库', url: 'https://www.xianjianaiedu.com' },
   HEO_HERO_CATEGORY_2: { title: '教学工具', url: '/tag/工具' },
   HEO_HERO_CATEGORY_3: { title: '实用教程', url: '/tag/教程' },
 
