@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图片倒推提示词工具 - AI图像分析专业平台</title>
+    
+    <!-- 字体和图标 -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-blue: #1e3a8a;
+            --primary-blue-light: #3b82f6;
+            --secondary-purple: #7c3aed;
+            --secondary-purple-light: #a855f7;
+            --accent-cyan: #06b6d4;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.8);
+            --bg-glass: rgba(255, 255, 255, 0.1);
+            --bg-glass-strong: rgba(255, 255, 255, 0.15);
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            
+            --border-glass: rgba(255, 255, 255, 0.2);
+            --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.2);
+            
+            --gradient-primary: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            --gradient-secondary: linear-gradient(135deg, #7c3aed, #a855f7);
+            --gradient-accent: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* 动态背景 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(124, 58, 237, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(6, 182, 212, 0.2) 0%, transparent 50%);
+            z-index: -1;
+            animation: backgroundFloat 20s ease-in-out infinite;
+        }
+
+        @keyframes backgroundFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(1deg); }
+            66% { transform: translate(-20px, 20px) rotate(-1deg); }
+        }
+
+        /* 玻璃态容器 */
+        .glass-container {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            box-shadow: var(--shadow-glass);
+            transition: all 0.3s ease;
+        }
+
+        .glass-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* 主容器 */
+        .main-container {
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 顶部标题 */
+        .header {
+            padding: 30px;
+            text-align: center;
+            background: var(--gradient-primary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" patternUnits="userSpaceOnUse" width="10" height="10"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>') repeat;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* API配置面板 */
+        .config-panel {
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .config-header h2 {
+            font-size: 1.4rem;
+            color: var(--primary-blue-light);
+        }
+
+        .toggle-btn {
+            background: var(--gradient-accent);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .config-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .config-content.expanded {
+            max-height: 500px;
+        }
+
+        .config-section {
+            padding: 20px;
+            background: var(--bg-glass-strong);
+            border-radius: 12px;
+            border: 1px solid var(--border-glass);
+        }
+
+        .config-section h3 {
+            color: var(--secondary-purple-light);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border-glass);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+        }
+
+        /* 主操作区域 */
+        .main-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .upload-section, .result-section {
+            padding: 30px;
+        }
+
+        .upload-zone {
+            border: 2px dashed var(--border-glass);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            background: var(--bg-glass);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .upload-zone.drag-over {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.2);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: var(--accent-cyan);
+        }
+
+        .preview-container {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .model-selection {
+            margin: 20px 0;
+        }
+
+        .model-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .model-option {
+            padding: 12px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .model-option:hover {
+            border-color: var(--accent-cyan);
+        }
+
+        .model-option.selected {
+            background: var(--gradient-accent);
+            border-color: var(--accent-cyan);
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 15px;
+            background: var(--gradient-primary);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 0;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .action-btn.secondary {
+            background: var(--gradient-secondary);
+        }
+
+        .action-btn.secondary:hover:not(:disabled) {
+            box-shadow: 0 8px 25px rgba(124, 58, 237, 0.4);
+        }
+
+        /* 结果展示 */
+        .result-content {
+            background: var(--bg-glass);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 200px;
+            border: 1px solid var(--border-glass);
+            white-space: pre-wrap;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .result-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-glass);
+        }
+
+        .tab-btn {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-cyan);
+            border-bottom-color: var(--accent-cyan);
+        }
+
+        /* 加载动画 */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border-glass);
+            border-radius: 50%;
+            border-top-color: var(--accent-cyan);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        /* 打字机效果 */
+        .typing-effect::after {
+            content: '|';
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        /* 复制按钮 */
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--gradient-accent);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .result-content:hover .copy-btn {
+            opacity: 1;
+        }
+
+        /* 版权信息 */
+        .copyright {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-glass);
+            margin-top: 40px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .model-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main-container">
+        <!-- 顶部标题 -->
+        <header class="header glass-container">
+            <h1>🎨 图片倒推提示词工具</h1>
+            <p>专业AI图像分析平台 - 智能提示词生成与优化</p>
+        </header>
+
+        <!-- API配置面板 -->
+        <section class="config-panel glass-container">
+            <div class="config-header">
+                <h2>🔧 API配置中心</h2>
+                <button class="toggle-btn" onclick="toggleConfig()">
+                    <span id="toggleText">展开配置</span>
+                </button>
+            </div>
+            
+            <div class="config-content" id="configContent">
+                <!-- DeepSeek配置 -->
+                <div class="config-section">
+                    <h3>🤖 DeepSeek API配置</h3>
+                    <div class="form-group">
+                        <label>API Key</label>
+                        <input type="password" id="deepseekApiKey" placeholder="输入DeepSeek API Key">
+                    </div>
+                    <div class="form-group">
+                        <label>优化模型</label>
+                        <select id="deepseekModel">
+                            <option value="deepseek-chat">DeepSeek Chat</option>
+                            <option value="deepseek-reasoner">DeepSeek Reasoner</option>
+                        </select>
+                    </div>
+                    <button class="action-btn" onclick="testDeepSeekAPI()">测试连接</button>
+                </div>
+
+                <!-- 通义千问配置 -->
+                <div class="config-section">
+                    <h3>🧠 通义千问API配置</h3>
+                    <div class="form-group">
+                        <label>API Key</label>
+                        <input type="password" id="qwenApiKey" placeholder="输入通义千问API Key">
+                    </div>
+                    <div class="form-group">
+                        <label>视觉模型</label>
+                        <select id="qwenVisionModel">
+                            <option value="qwen-vl-plus">Qwen-VL-Plus</option>
+                            <option value="qwen-vl-max">Qwen-VL-Max</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>优化模型</label>
+                        <select id="qwenOptModel">
+                            <option value="qwen-turbo">Qwen Turbo</option>
+                            <option value="qwen-plus">Qwen Plus</option>
+                        </select>
+                    </div>
+                    <button class="action-btn" onclick="testQwenAPI()">测试连接</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 主操作区域 -->
+        <div class="main-area">
+            <!-- 图片上传和分析 -->
+            <section class="upload-section glass-container">
+                <h2 style="color: var(--primary-blue-light); margin-bottom: 20px;">📸 图片分析</h2>
+                
+                <!-- 上传区域 -->
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📁</div>
+                    <div>点击上传或拖拽图片到这里</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">
+                        支持 JPG、PNG、GIF 格式，最大 10MB
+                    </div>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+                
+                <!-- 图片预览 -->
+                <div class="preview-container" id="previewContainer" style="display: none;">
+                    <img class="preview-image" id="previewImage" alt="预览图片">
+                </div>
+
+                <!-- 模型选择 -->
+                <div class="model-selection">
+                    <h3 style="color: var(--secondary-purple-light); margin-bottom: 15px;">选择分析模型</h3>
+                    <div class="model-grid">
+                        <div class="model-option selected" data-model="qwen-vl-plus">
+                            Qwen-VL-Plus<br>
+                            <small>高效分析</small>
+                        </div>
+                        <div class="model-option" data-model="qwen-vl-max">
+                            Qwen-VL-Max<br>
+                            <small>专业分析</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 分析按钮 -->
+                <button class="action-btn" id="analyzeBtn" onclick="analyzeImage()">
+                    🔍 开始分析图片
+                </button>
+            </section>
+
+            <!-- 结果展示和优化 -->
+            <section class="result-section glass-container">
+                <h2 style="color: var(--primary-blue-light); margin-bottom: 20px;">📝 提示词结果</h2>
+                
+                <!-- 结果标签页 -->
+                <div class="result-tabs">
+                    <button class="tab-btn active" onclick="switchTab('original')">原始提示词</button>
+                    <button class="tab-btn" onclick="switchTab('optimized')">优化提示词</button>
+                </div>
+
+                <!-- 原始提示词 -->
+                <div id="originalResult" class="result-content" style="position: relative;">
+                    <div style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                        上传图片并点击分析按钮开始生成提示词
+                    </div>
+                    <button class="copy-btn" onclick="copyResult('original')" style="display: none;">复制</button>
+                </div>
+
+                <!-- 优化提示词 -->
+                <div id="optimizedResult" class="result-content" style="position: relative; display: none;">
+                    <div style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+                        先生成原始提示词，然后进行优化
+                    </div>
+                    <button class="copy-btn" onclick="copyResult('optimized')" style="display: none;">复制</button>
+                </div>
+
+                <!-- 优化选项 -->
+                <div style="margin-top: 20px;">
+                    <h3 style="color: var(--secondary-purple-light); margin-bottom: 15px;">选择优化模型</h3>
+                    <div class="model-grid">
+                        <div class="model-option selected" data-optimize="deepseek">
+                            DeepSeek<br>
+                            <small>逻辑优化</small>
+                        </div>
+                        <div class="model-option" data-optimize="qwen">
+                            通义千问<br>
+                            <small>创意优化</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 优化按钮 -->
+                <button class="action-btn secondary" id="optimizeBtn" onclick="optimizePrompt()">
+                    ✨ 优化提示词
+                </button>
+            </section>
+        </div>
+
+        <!-- 版权信息 -->
+        <footer class="copyright">
+            本页面由公众号先见信息开发提供，禁止商用
+        </footer>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentImage = null;
+        let originalPrompt = '';
+        let selectedVisionModel = 'qwen-vl-plus';
+        let selectedOptimizeModel = 'deepseek';
+        let configExpanded = false;
+
+        // 页面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadConfig();
+            setupEventListeners();
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 拖拽上传
+            const uploadZone = document.getElementById('uploadZone');
+            
+            uploadZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('drag-over');
+            });
+
+            uploadZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+            });
+
+            uploadZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+
+            // 模型选择
+            document.querySelectorAll('.model-option[data-model]').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.model-option[data-model]').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedVisionModel = option.dataset.model;
+                });
+            });
+
+            document.querySelectorAll('.model-option[data-optimize]').forEach(option => {
+                option.addEventListener('click', () => {
+                    document.querySelectorAll('.model-option[data-optimize]').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    selectedOptimizeModel = option.dataset.optimize;
+                });
+            });
+        }
+
+        // 配置面板切换
+        function toggleConfig() {
+            const content = document.getElementById('configContent');
+            const toggleText = document.getElementById('toggleText');
+            
+            configExpanded = !configExpanded;
+            
+            if (configExpanded) {
+                content.classList.add('expanded');
+                toggleText.textContent = '收起配置';
+            } else {
+                content.classList.remove('expanded');
+                toggleText.textContent = '展开配置';
+            }
+        }
+
+        // 加载配置
+        function loadConfig() {
+            const deepseekKey = localStorage.getItem('deepseek_api_key');
+            const qwenKey = localStorage.getItem('qwen_api_key');
+            
+            if (deepseekKey) {
+                document.getElementById('deepseekApiKey').value = deepseekKey;
+            }
+            if (qwenKey) {
+                document.getElementById('qwenApiKey').value = qwenKey;
+            }
+        }
+
+        // 保存配置
+        function saveConfig() {
+            const deepseekKey = document.getElementById('deepseekApiKey').value.trim();
+            const qwenKey = document.getElementById('qwenApiKey').value.trim();
+            
+            if (deepseekKey) {
+                localStorage.setItem('deepseek_api_key', deepseekKey);
+            }
+            if (qwenKey) {
+                localStorage.setItem('qwen_api_key', qwenKey);
+            }
+        }
+
+        // 文件选择处理
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+
+        // 文件处理
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                alert('请选择图片文件！');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                alert('图片大小不能超过10MB！');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentImage = e.target.result;
+                showPreview(currentImage);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // 显示预览
+        function showPreview(imageSrc) {
+            document.getElementById('previewContainer').style.display = 'block';
+            document.getElementById('previewImage').src = imageSrc;
+        }
+
+        // 分析图片
+        async function analyzeImage() {
+            if (!currentImage) {
+                alert('请先上传图片！');
+                return;
+            }
+
+            const qwenKey = document.getElementById('qwenApiKey').value.trim();
+            if (!qwenKey) {
+                alert('请先配置通义千问API Key！');
+                toggleConfig();
+                return;
+            }
+
+            saveConfig();
+
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const resultDiv = document.getElementById('originalResult');
+            
+            analyzeBtn.disabled = true;
+            analyzeBtn.innerHTML = '<span class="loading-spinner"></span> 分析中...';
+            
+            resultDiv.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary);">
+                    <span class="loading-spinner"></span>
+                    <span>AI正在分析图片，请稍候...</span>
+                </div>
+            `;
+
+            try {
+                const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${qwenKey}`
+                    },
+                    body: JSON.stringify({
+                        model: selectedVisionModel,
+                        messages: [{
+                            role: 'user',
+                            content: [
+                                {
+                                    type: 'image_url',
+                                    image_url: { url: currentImage }
+                                },
+                                {
+                                    type: 'text',
+                                    text: '请详细分析这张图片，并生成专业的中文AI绘画提示词。要求：1.描述主体对象的外观特征 2.描述场景环境和背景 3.描述艺术风格和技法 4.描述光影和色彩效果 5.描述构图和视角。请用逗号分隔各个关键词，形成完整的提示词。'
+                                }
+                            ]
+                        }],
+                        stream: true,
+                        max_tokens: 2000,
+                        temperature: 0.7
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('分析请求失败');
+                }
+
+                let result = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                resultDiv.innerHTML = '<div class="typing-effect"></div>';
+                const typingElement = resultDiv.querySelector('.typing-effect');
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data:') && line !== 'data: [DONE]') {
+                            try {
+                                const data = JSON.parse(line.slice(5));
+                                const content = data.choices[0]?.delta?.content || '';
+                                if (content) {
+                                    result += content;
+                                    typingElement.textContent = result;
+                                }
+                            } catch (e) {
+                                console.error('解析响应出错:', e);
+                            }
+                        }
+                    }
+                }
+
+                originalPrompt = result;
+                resultDiv.innerHTML = `
+                    <div>${result}</div>
+                    <button class="copy-btn" onclick="copyResult('original')">复制</button>
+                `;
+
+            } catch (error) {
+                console.error('分析失败:', error);
+                resultDiv.innerHTML = `
+                    <div style="color: #ef4444; text-align: center; padding: 20px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">❌</div>
+                        <div>分析失败: ${error.message}</div>
+                    </div>
+                `;
+            } finally {
+                analyzeBtn.disabled = false;
+                analyzeBtn.innerHTML = '🔍 开始分析图片';
+            }
+        }
+
+        // 优化提示词
+        async function optimizePrompt() {
+            if (!originalPrompt) {
+                alert('请先生成原始提示词！');
+                return;
+            }
+
+            let apiKey, model, apiUrl;
+            
+            if (selectedOptimizeModel === 'deepseek') {
+                apiKey = document.getElementById('deepseekApiKey').value.trim();
+                model = document.getElementById('deepseekModel').value;
+                apiUrl = 'https://api.deepseek.com/chat/completions';
+            } else {
+                apiKey = document.getElementById('qwenApiKey').value.trim();
+                model = document.getElementById('qwenOptModel').value;
+                apiUrl = 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions';
+            }
+
+            if (!apiKey) {
+                alert(`请先配置${selectedOptimizeModel === 'deepseek' ? 'DeepSeek' : '通义千问'}API Key！`);
+                toggleConfig();
+                return;
+            }
+
+            saveConfig();
+
+            const optimizeBtn = document.getElementById('optimizeBtn');
+            const resultDiv = document.getElementById('optimizedResult');
+            
+            // 切换到优化标签页
+            switchTab('optimized');
+            
+            optimizeBtn.disabled = true;
+            optimizeBtn.innerHTML = '<span class="loading-spinner"></span> 优化中...';
+            
+            resultDiv.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px; color: var(--text-secondary);">
+                    <span class="loading-spinner"></span>
+                    <span>AI正在优化提示词，请稍候...</span>
+                </div>
+            `;
+
+            try {
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+
+                if (selectedOptimizeModel === 'deepseek') {
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                } else {
+                    headers['Authorization'] = `Bearer ${apiKey}`;
+                }
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [{
+                            role: 'user',
+                            content: `请优化以下AI绘画提示词，使其更加专业、准确和富有表现力。要求：
+1. 保持原有核心内容的完整性
+2. 增强描述的专业性和准确性
+3. 优化关键词的排序和组合
+4. 增加必要的艺术技法和风格描述
+5. 确保提示词逻辑清晰、层次分明
+
+原始提示词：
+${originalPrompt}
+
+请直接输出优化后的提示词，用逗号分隔：`
+                        }],
+                        stream: true,
+                        max_tokens: 2000,
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('优化请求失败');
+                }
+
+                let result = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                resultDiv.innerHTML = '<div class="typing-effect"></div>';
+                const typingElement = resultDiv.querySelector('.typing-effect');
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data:') && line !== 'data: [DONE]') {
+                            try {
+                                const data = JSON.parse(line.slice(5));
+                                const content = data.choices[0]?.delta?.content || '';
+                                if (content) {
+                                    result += content;
+                                    typingElement.textContent = result;
+                                }
+                            } catch (e) {
+                                console.error('解析响应出错:', e);
+                            }
+                        }
+                    }
+                }
+
+                resultDiv.innerHTML = `
+                    <div>${result}</div>
+                    <button class="copy-btn" onclick="copyResult('optimized')">复制</button>
+                `;
+
+            } catch (error) {
+                console.error('优化失败:', error);
+                resultDiv.innerHTML = `
+                    <div style="color: #ef4444; text-align: center; padding: 20px;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">❌</div>
+                        <div>优化失败: ${error.message}</div>
+                    </div>
+                `;
+            } finally {
+                optimizeBtn.disabled = false;
+                optimizeBtn.innerHTML = '✨ 优化提示词';
+            }
+        }
+
+        // 切换标签页
+        function switchTab(tab) {
+            // 更新标签按钮状态
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+            
+            // 切换内容显示
+            document.getElementById('originalResult').style.display = tab === 'original' ? 'block' : 'none';
+            document.getElementById('optimizedResult').style.display = tab === 'optimized' ? 'block' : 'none';
+        }
+
+        // 复制结果
+        function copyResult(type) {
+            const resultDiv = document.getElementById(type + 'Result');
+            const text = resultDiv.querySelector('div').textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = resultDiv.querySelector('.copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '已复制';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 1000);
+            }).catch(err => {
+                console.error('复制失败:', err);
+                alert('复制失败，请手动选择文本复制');
+            });
+        }
+
+        // 测试DeepSeek API
+        async function testDeepSeekAPI() {
+            const apiKey = document.getElementById('deepseekApiKey').value.trim();
+            if (!apiKey) {
+                alert('请输入DeepSeek API Key！');
+                return;
+            }
+
+            try {
+                const response = await fetch('https://api.deepseek.com/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'deepseek-chat',
+                        messages: [{ role: 'user', content: '测试连接' }],
+                        max_tokens: 10
+                    })
+                });
+
+                if (response.ok) {
+                    alert('DeepSeek API连接成功！');
+                } else {
+                    throw new Error('连接失败');
+                }
+            } catch (error) {
+                alert('DeepSeek API连接失败: ' + error.message);
+            }
+        }
+
+        // 测试通义千问API
+        async function testQwenAPI() {
+            const apiKey = document.getElementById('qwenApiKey').value.trim();
+            if (!apiKey) {
+                alert('请输入通义千问API Key！');
+                return;
+            }
+
+            try {
+                const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'qwen-plus',
+                        messages: [{ role: 'user', content: '测试连接' }],
+                        max_tokens: 10
+                    })
+                });
+
+                if (response.ok) {
+                    alert('通义千问API连接成功！');
+                } else {
+                    throw new Error('连接失败');
+                }
+            } catch (error) {
+                alert('通义千问API连接失败: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

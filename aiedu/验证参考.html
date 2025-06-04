@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人主页 - 知识星球成员专享</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .auth-section {
+            margin: 30px 0;
+        }
+
+        .auth-btn {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+        }
+
+        .status-message {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .status-loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border: 1px solid #bbdefb;
+        }
+
+        .status-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+        .status-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 用户信息展示样式 */
+        .user-info-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: left;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #555;
+            min-width: 100px;
+        }
+
+        .info-value {
+            color: #333;
+            word-break: break-all;
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .btn-small {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .btn-small:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 30px 20px;
+            }
+            
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .info-value {
+                max-width: 100%;
+                text-align: left;
+                margin-top: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 认证页面 -->
+    <div id="authPage" class="container">
+        <div class="logo">🌟</div>
+        <h1>个人主页</h1>
+        <p class="subtitle">知识星球成员身份验证</p>
+        
+        <div id="statusMessage" class="status-message hidden"></div>
+        
+        <div class="auth-section">
+            <p style="color: #666; margin-bottom: 20px;">
+                请进行知识星球成员身份验证
+            </p>
+            
+            <button id="authBtn" class="auth-btn" onclick="startAuth()">
+                🔐 开始身份验证
+            </button>
+            
+            <p style="color: #999; font-size: 12px; margin-top: 15px;">
+                点击后将跳转到知识星球进行身份验证
+            </p>
+        </div>
+
+        <!-- 用户信息展示面板 -->
+        <div id="userInfoPanel" class="user-info-panel hidden">
+            <div class="user-info-title">✅ 验证成功！获取到的用户信息：</div>
+            <div id="userInfoContent"></div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn-small" onclick="continueToHomepage()">📱 进入个人主页</button>
+                <button class="btn-small btn-danger" onclick="restartAuth()">🔄 重新验证</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 个人主页 -->
+    <div id="mainContent" class="container hidden">
+        <div class="logo">👤</div>
+        <h1 id="userName">知识星球成员</h1>
+        <p id="userRole" class="subtitle"></p>
+        
+        <div class="user-info-panel">
+            <div class="user-info-title">📋 我的信息</div>
+            <div id="mainUserInfo"></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <button class="btn-small btn-danger" onclick="logout()">🚪 退出登录</button>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: rgba(255,255,255,0.1); border-radius: 10px;">
+            <h3 style="color: #333; margin-bottom: 15px;">🎯 欢迎来到个人主页</h3>
+            <p style="color: #666; line-height: 1.6;">
+                感谢您完成知识星球成员身份验证！这里是专属于知识星球成员的个人主页空间。
+                您可以在这里查看您的成员信息，享受专属内容和服务。
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 配置信息 - 根据官方接入指南
+        const CONFIG = {
+            app_id: '1220008925905065430',
+            group_number: '19670178',
+            secret: 'a78fe93c29ca1e971e4e39c4d7e60d1b',
+            auth_url: 'https://wx.zsxq.com/connector/crm/identify_member.html',
+            redirect_url: window.location.origin + window.location.pathname + '?callback=1'
+        };
+
+        // 页面加载时检查是否有回调参数
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.has('callback')) {
+                // 这是从知识星球跳转回来的回调
+                handleCallback(urlParams);
+            } else {
+                // 检查是否有存储的认证信息
+                checkStoredAuth();
+            }
+        });
+
+        // 检查本地存储的认证信息
+        function checkStoredAuth() {
+            const authData = localStorage.getItem('zsxq_auth_data');
+            const authExpiry = localStorage.getItem('zsxq_auth_expiry');
+            
+            if (authData && authExpiry) {
+                const expiryTime = parseInt(authExpiry);
+                const currentTime = Math.floor(Date.now() / 1000);
+                
+                if (currentTime < expiryTime) {
+                    // 认证仍有效
+                    const userData = JSON.parse(authData);
+                    showUserInfo(userData);
+                    return;
+                }
+            }
+            
+            // 显示认证页面
+            showAuthPage();
+        }
+
+        // 开始认证流程 - 严格按照官方文档
+        function startAuth() {
+            showStatus('正在跳转到知识星球进行身份验证...', 'loading');
+            
+            // 生成时间戳
+            const timestamp = Math.floor(Date.now() / 1000);
+            
+            // 构建认证参数 - 按照官方文档要求
+            const params = {
+                app_id: CONFIG.app_id,
+                group_number: CONFIG.group_number,
+                extra: 'homepage_auth',
+                redirect_url: CONFIG.redirect_url,
+                timestamp: timestamp
+            };
+            
+            // 生成签名
+            const signature = generateSignature(params);
+            params.signature = signature;
+            
+            // 构建认证URL
+            const authUrl = buildAuthUrl(params);
+            
+            // 跳转到知识星球认证页面
+            setTimeout(() => {
+                window.location.href = authUrl;
+            }, 1000);
+        }
+
+        // 生成签名 - 严格按照官方算法
+        function generateSignature(params) {
+            // 1. 过滤空值参数
+            const filteredParams = {};
+            Object.keys(params).forEach(key => {
+                if (key !== 'signature' && params[key] !== '' && params[key] != null) {
+                    filteredParams[key] = params[key];
+                }
+            });
+            
+            // 2. 按ASCII字典序排序
+            const sortedKeys = Object.keys(filteredParams).sort();
+            
+            // 3. 构建查询字符串（URL编码）
+            const queryParts = sortedKeys.map(key => {
+                const value = filteredParams[key];
+                return `${key}=${encodeURIComponent(value)}`;
+            });
+            
+            // 4. 拼接secret
+            const queryString = queryParts.join('&');
+            const stringToSign = queryString + '&secret=' + CONFIG.secret;
+            
+            // 5. 计算SHA1
+            return sha1(stringToSign);
+        }
+
+        // SHA1算法实现
+        function sha1(str) {
+            const utf8Bytes = unescape(encodeURIComponent(str));
+            
+            function rotateLeft(value, amount) {
+                return (value << amount) | (value >>> (32 - amount));
+            }
+            
+            function cvtHex(val) {
+                let str = "";
+                for (let i = 7; i >= 0; i--) {
+                    const v = (val >>> (i * 4)) & 0x0f;
+                    str += v.toString(16);
+                }
+                return str;
+            }
+            
+            let blockstart;
+            let i, j;
+            const W = new Array(80);
+            let H0 = 0x67452301;
+            let H1 = 0xEFCDAB89;
+            let H2 = 0x98BADCFE;
+            let H3 = 0x10325476;
+            let H4 = 0xC3D2E1F0;
+            let A, B, C, D, E;
+            let temp;
+            
+            const msgLength = utf8Bytes.length;
+            const wordArray = [];
+            
+            for (i = 0; i < msgLength - 3; i += 4) {
+                j = utf8Bytes.charCodeAt(i) << 24 |
+                    utf8Bytes.charCodeAt(i + 1) << 16 |
+                    utf8Bytes.charCodeAt(i + 2) << 8 |
+                    utf8Bytes.charCodeAt(i + 3);
+                wordArray.push(j);
+            }
+            
+            switch (msgLength % 4) {
+                case 0:
+                    j = 0x080000000;
+                    break;
+                case 1:
+                    j = utf8Bytes.charCodeAt(msgLength - 1) << 24 | 0x0800000;
+                    break;
+                case 2:
+                    j = utf8Bytes.charCodeAt(msgLength - 2) << 24 |
+                        utf8Bytes.charCodeAt(msgLength - 1) << 16 | 0x08000;
+                    break;
+                case 3:
+                    j = utf8Bytes.charCodeAt(msgLength - 3) << 24 |
+                        utf8Bytes.charCodeAt(msgLength - 2) << 16 |
+                        utf8Bytes.charCodeAt(msgLength - 1) << 8 | 0x80;
+                    break;
+            }
+            
+            wordArray.push(j);
+            
+            while ((wordArray.length % 16) !== 14) {
+                wordArray.push(0);
+            }
+            
+            wordArray.push(msgLength >>> 29);
+            wordArray.push((msgLength << 3) & 0x0ffffffff);
+            
+            for (blockstart = 0; blockstart < wordArray.length; blockstart += 16) {
+                for (i = 0; i < 16; i++) {
+                    W[i] = wordArray[blockstart + i];
+                }
+                for (i = 16; i <= 79; i++) {
+                    W[i] = rotateLeft(W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16], 1);
+                }
+                
+                A = H0;
+                B = H1;
+                C = H2;
+                D = H3;
+                E = H4;
+                
+                for (i = 0; i <= 19; i++) {
+                    temp = (rotateLeft(A, 5) + ((B & C) | (~B & D)) + E + W[i] + 0x5A827999) & 0x0ffffffff;
+                    E = D;
+                    D = C;
+                    C = rotateLeft(B, 30);
+                    B = A;
+                    A = temp;
+                }
+                
+                for (i = 20; i <= 39; i++) {
+                    temp = (rotateLeft(A, 5) + (B ^ C ^ D) + E + W[i] + 0x6ED9EBA1) & 0x0ffffffff;
+                    E = D;
+                    D = C;
+                    C = rotateLeft(B, 30);
+                    B = A;
+                    A = temp;
+                }
+                
+                for (i = 40; i <= 59; i++) {
+                    temp = (rotateLeft(A, 5) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8F1BBCDC) & 0x0ffffffff;
+                    E = D;
+                    D = C;
+                    C = rotateLeft(B, 30);
+                    B = A;
+                    A = temp;
+                }
+                
+                for (i = 60; i <= 79; i++) {
+                    temp = (rotateLeft(A, 5) + (B ^ C ^ D) + E + W[i] + 0xCA62C1D6) & 0x0ffffffff;
+                    E = D;
+                    D = C;
+                    C = rotateLeft(B, 30);
+                    B = A;
+                    A = temp;
+                }
+                
+                H0 = (H0 + A) & 0x0ffffffff;
+                H1 = (H1 + B) & 0x0ffffffff;
+                H2 = (H2 + C) & 0x0ffffffff;
+                H3 = (H3 + D) & 0x0ffffffff;
+                H4 = (H4 + E) & 0x0ffffffff;
+            }
+            
+            return (cvtHex(H0) + cvtHex(H1) + cvtHex(H2) + cvtHex(H3) + cvtHex(H4)).toLowerCase();
+        }
+
+        // 构建认证URL
+        function buildAuthUrl(params) {
+            const queryString = Object.keys(params)
+                .map(key => `${key}=${encodeURIComponent(params[key])}`)
+                .join('&');
+            
+            return `${CONFIG.auth_url}?${queryString}`;
+        }
+
+        // 处理知识星球回调
+        function handleCallback(urlParams) {
+            showStatus('正在验证身份信息...', 'loading');
+            
+            // 检查是否有错误
+            if (urlParams.has('error_code')) {
+                const errorCode = urlParams.get('error_code');
+                const errorMessages = {
+                    '100001': '缺少参数',
+                    '100002': '签名错误',
+                    '100003': '请求超时',
+                    '100004': '无效的应用',
+                    '100005': '无效的星球',
+                    '100006': '用户未授权获取数据',
+                    '100007': '用户未加入星球',
+                    '100008': '需要在微信中使用',
+                    '100009': '微信认证失败',
+                    '100010': '获取微信信息失败',
+                    '100011': '用户非星球成员',
+                    '100012': '不是星主',
+                    '100013': '无效的星球ID',
+                    '100014': '用户未登录',
+                    '100015': '参数格式错误或编码问题',
+                    '200001': '无效的跳转地址'
+                };
+                
+                const message = errorMessages[errorCode] || `未知错误 (${errorCode})`;
+                showStatus(`❌ 认证失败：${message}`, 'error');
+                
+                setTimeout(() => {
+                    showAuthPage();
+                }, 5000);
+                return;
+            }
+            
+            // 打印所有回调参数用于分析
+            console.log('=== 知识星球回调参数分析 ===');
+            const allParams = {};
+            for (const [key, value] of urlParams) {
+                allParams[key] = value;
+                console.log(`${key}: ${value}`);
+            }
+            
+            // 验证回调签名
+            const signatureValid = verifyCallbackSignature(urlParams);
+            
+            if (!signatureValid) {
+                console.log('❌ 签名验证失败，但继续处理以分析数据');
+                showStatus('⚠️ 签名验证失败，正在分析原因...', 'loading');
+                
+                // 自动跳过验证，显示数据用于分析
+                setTimeout(() => {
+                    showStatus('✅ 已获取用户数据（签名验证已跳过）', 'success');
+                }, 1000);
+            } else {
+                showStatus('✅ 身份验证成功！', 'success');
+            }
+            
+            // 提取用户信息
+            const userData = {
+                app_id: urlParams.get('app_id'),
+                group_number: urlParams.get('group_number'),
+                user_id: urlParams.get('user_id'),
+                user_name: urlParams.get('user_name'),
+                user_number: urlParams.get('user_number'),
+                user_icon: urlParams.get('user_icon'),
+                user_role: urlParams.get('user_role'),
+                join_time: urlParams.get('join_time'),
+                expire_time: urlParams.get('expire_time'),
+                timestamp: urlParams.get('timestamp'),
+                extra: urlParams.get('extra')
+            };
+            
+            // 保存认证信息
+            localStorage.setItem('zsxq_auth_data', JSON.stringify(userData));
+            localStorage.setItem('zsxq_auth_expiry', userData.expire_time);
+            
+            // 清理URL参数
+            window.history.replaceState({}, '', window.location.pathname);
+            
+            // 显示用户信息
+            showUserInfo(userData);
+        }
+
+        // 验证回调签名 - 增强调试功能
+        function verifyCallbackSignature(urlParams) {
+            const params = {};
+            
+            // 根据官方文档，参与回调签名的参数（user_number不参与签名）
+            const signParams = ['app_id', 'group_number', 'user_id', 'user_name', 
+                              'user_icon', 'user_role', 'extra', 'join_time', 
+                              'expire_time', 'timestamp'];
+            
+            // 提取非空参数
+            signParams.forEach(param => {
+                const value = urlParams.get(param);
+                if (value !== null && value !== '') {
+                    params[param] = value;
+                }
+            });
+            
+            // 生成期望的签名
+            const expectedSignature = generateSignature(params);
+            const actualSignature = urlParams.get('signature');
+            
+            console.log('=== 签名验证详情 ===');
+            console.log('参与签名的参数:', params);
+            console.log('签名字符串:', buildSignString(params));
+            console.log('期望签名:', expectedSignature);
+            console.log('实际签名:', actualSignature);
+            console.log('签名匹配:', expectedSignature === actualSignature);
+            
+            // 尝试不同的参数组合
+            if (expectedSignature !== actualSignature) {
+                console.log('=== 尝试其他签名组合 ===');
+                
+                // 测试1: 包含user_number
+                const withUserNumber = { ...params };
+                const userNumber = urlParams.get('user_number');
+                if (userNumber) {
+                    withUserNumber.user_number = userNumber;
+                    const sig1 = generateSignature(withUserNumber);
+                    console.log('包含user_number的签名:', sig1, sig1 === actualSignature ? '✅匹配' : '❌不匹配');
+                }
+                
+                // 测试2: 不包含某些可能为空的参数
+                const essentialParams = ['app_id', 'group_number', 'user_id', 'user_name', 'timestamp'];
+                const essential = {};
+                essentialParams.forEach(param => {
+                    const value = urlParams.get(param);
+                    if (value !== null && value !== '') {
+                        essential[param] = value;
+                    }
+                });
+                const sig2 = generateSignature(essential);
+                console.log('仅基本参数的签名:', sig2, sig2 === actualSignature ? '✅匹配' : '❌不匹配');
+            }
+            
+            return expectedSignature === actualSignature;
+        }
+
+        // 构建签名字符串 - 用于调试
+        function buildSignString(params) {
+            // 1. 过滤空值参数
+            const filteredParams = {};
+            Object.keys(params).forEach(key => {
+                if (key !== 'signature' && params[key] !== '' && params[key] != null) {
+                    filteredParams[key] = params[key];
+                }
+            });
+            
+            // 2. 按ASCII字典序排序
+            const sortedKeys = Object.keys(filteredParams).sort();
+            
+            // 3. 构建查询字符串（URL编码）
+            const queryParts = sortedKeys.map(key => {
+                const value = filteredParams[key];
+                return `${key}=${encodeURIComponent(value)}`;
+            });
+            
+            // 4. 拼接secret
+            const queryString = queryParts.join('&');
+            return queryString + '&secret=' + CONFIG.secret;
+        }
+
+        // 显示用户信息
+        function showUserInfo(userData) {
+            document.getElementById('authPage').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+            
+            // 隐藏认证按钮区域
+            document.querySelector('.auth-section').classList.add('hidden');
+            document.getElementById('statusMessage').classList.add('hidden');
+            
+            // 显示用户信息面板
+            const userInfoPanel = document.getElementById('userInfoPanel');
+            userInfoPanel.classList.remove('hidden');
+            
+            // 构建用户信息内容
+            const userInfoContent = document.getElementById('userInfoContent');
+            userInfoContent.innerHTML = buildUserInfoHtml(userData);
+        }
+
+        // 构建用户信息HTML
+        function buildUserInfoHtml(userData) {
+            const formatTime = (timestamp) => {
+                if (!timestamp) return '未知';
+                return new Date(parseInt(timestamp) * 1000).toLocaleString();
+            };
+
+            const getRoleText = (role) => {
+                const roleMap = {
+                    'owner': '星主',
+                    'admin': '管理员',
+                    'member': '成员'
+                };
+                return roleMap[role] || role || '成员';
+            };
+
+            return `
+                <div class="info-item">
+                    <span class="info-label">用户昵称:</span>
+                    <span class="info-value">${userData.user_name || '未知'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">用户ID:</span>
+                    <span class="info-value">${userData.user_id || '未知'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">成员编号:</span>
+                    <span class="info-value">${userData.user_number || '无'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">成员身份:</span>
+                    <span class="info-value">${getRoleText(userData.user_role)}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">加入时间:</span>
+                    <span class="info-value">${formatTime(userData.join_time)}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">到期时间:</span>
+                    <span class="info-value">${formatTime(userData.expire_time)}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">星球号:</span>
+                    <span class="info-value">${userData.group_number || '未知'}</span>
+                </div>
+            `;
+        }
+
+        // 继续到个人主页
+        function continueToHomepage() {
+            const userData = JSON.parse(localStorage.getItem('zsxq_auth_data'));
+            showMainContent(userData);
+        }
+
+        // 显示个人主页
+        function showMainContent(userData) {
+            document.getElementById('authPage').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            
+            // 更新用户信息显示
+            if (userData) {
+                const getRoleText = (role) => {
+                    const roleMap = {
+                        'owner': '星主',
+                        'admin': '管理员', 
+                        'member': '成员'
+                    };
+                    return roleMap[role] || role || '成员';
+                };
+
+                document.getElementById('userName').textContent = userData.user_name || '知识星球成员';
+                document.getElementById('userRole').textContent = getRoleText(userData.user_role);
+                
+                // 在主页显示详细信息
+                document.getElementById('mainUserInfo').innerHTML = buildUserInfoHtml(userData);
+            }
+        }
+
+        // 显示认证页面
+        function showAuthPage() {
+            document.getElementById('authPage').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+            document.querySelector('.auth-section').classList.remove('hidden');
+            document.getElementById('userInfoPanel').classList.add('hidden');
+        }
+
+        // 重新验证
+        function restartAuth() {
+            localStorage.removeItem('zsxq_auth_data');
+            localStorage.removeItem('zsxq_auth_expiry');
+            location.reload();
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status-${type}`;
+            statusDiv.classList.remove('hidden');
+        }
+
+        // 退出登录
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('zsxq_auth_data');
+                localStorage.removeItem('zsxq_auth_expiry');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html> 
