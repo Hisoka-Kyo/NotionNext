@@ -53,8 +53,8 @@ const CONFIG = {
   HEO_INFO_CARD_ICON1: 'fa-solid fa-book',
   HEO_INFO_CARD_URL2: 'https://www.xianjianinfo.com/article/20766738-8b3b-80f6-8951-f994bf30171e',
   HEO_INFO_CARD_ICON2: 'fa-brands fa-weixin',
-  HEO_INFO_CARD_URL3: '/about',
-  HEO_INFO_CARD_TEXT3: '了解更多',
+  HEO_INFO_CARD_URL3: 'https://www.xianjianinfo.com/article/20966738-8b3b-80f8-b3a8-daf21b8141ce',
+  HEO_INFO_CARD_TEXT3: '合作交流',
 
   // 用户技能图标
   HEO_GROUP_ICONS: [
