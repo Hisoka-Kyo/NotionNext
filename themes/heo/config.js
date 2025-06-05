@@ -20,7 +20,7 @@ const CONFIG = {
   // 英雄区(首页顶部大卡)
   HEO_HERO_TITLE_1: '分享教育',
   HEO_HERO_TITLE_2: '与人工智能',
-  HEO_HERO_TITLE_3: 'XIANJIANAIEDU.COM',
+  HEO_HERO_TITLE_3: 'XIANJIANINFO.COM',
   HEO_HERO_TITLE_4: '知识星球',
   HEO_HERO_TITLE_5: '加入星球获取全站资源',
   HEO_HERO_TITLE_LINK: 'https://wx.zsxq.com/group/28882588512111',
