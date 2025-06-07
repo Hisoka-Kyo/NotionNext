@@ -13,6 +13,7 @@ export default function Coze() {
   )
   const title = siteConfig('COZE_TITLE', 'NotionNext助手')
   const botId = siteConfig('COZE_BOT_ID')
+  const token = siteConfig('COZE_BOT_TOKEN', 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9')
 
   const loadCoze = async () => {
     await loadExternalResource(cozeSrc)
@@ -27,9 +28,9 @@ export default function Coze() {
         },
         auth: {
           type: 'token',
-          token: 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9',
+          token: token,
           onRefreshToken: function () {
-            return 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9'
+            return token
           }
         }
       })
@@ -42,6 +43,7 @@ export default function Coze() {
       return
     }
     loadCoze()
-  }, [])
+  }, [botId]) // 修复依赖数组
+
   return <></>
 }
