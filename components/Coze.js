@@ -24,7 +24,14 @@ export default function Coze() {
         },
         componentProps: {
           title: title
+        },
+        auth: {
+        type: 'token',
+        token: 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9',
+        onRefreshToken: function () {
+          return 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9'
         }
+      }
       })
       console.log('coze', cozeClient)
     }
