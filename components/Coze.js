@@ -7,30 +7,40 @@ import { useEffect } from 'react'
  * @returns
  */
 export default function Coze() {
+  const cozeSrc = siteConfig(
+    'COZE_SRC_URL',
+    'https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js'
+  )
+  const title = siteConfig('COZE_TITLE', 'NotionNext助手')
+  const botId = siteConfig('COZE_BOT_ID')
 
   const loadCoze = async () => {
-    await loadExternalResource(https://lf-cdn.coze.cn/obj/unpkg/flow-platform/chat-app-sdk/1.2.0-beta.10/libs/cn/index.js)
+    await loadExternalResource(cozeSrc)
     const CozeWebSDK = window?.CozeWebSDK
     if (CozeWebSDK) {
       const cozeClient = new CozeWebSDK.WebChatClient({
-      config: {
-        bot_id: '7512812008770388002',
-      },
-      componentProps: {
-        title: 'Coze',
-      },
-      auth: {
-        type: 'token',
-        token: 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9',
-        onRefreshToken: function () {
-          return 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9'
-      }
+        config: {
+          bot_id: botId
+        },
+        componentProps: {
+          title: title
+        },
+        auth: {
+          type: 'token',
+          token: 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9',
+          onRefreshToken: function () {
+            return 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9'
+          }
+        }
       })
       console.log('coze', cozeClient)
     }
   }
 
   useEffect(() => {
+    if (!botId) {
+      return
+    }
     loadCoze()
   }, [])
   return <></>
