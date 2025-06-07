@@ -13,6 +13,7 @@ export default function Coze() {
   )
   const title = siteConfig('COZE_TITLE', 'NotionNext助手')
   const botId = siteConfig('COZE_BOT_ID')
+  const toKen = siteConfig('COZE_BOT_Token')
 
   const loadCoze = async () => {
     await loadExternalResource(cozeSrc)
@@ -27,9 +28,9 @@ export default function Coze() {
         },
         auth: {
         type: 'token',
-        token: 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9',
+        token: toKen,
         onRefreshToken: function () {
-          return 'pat_4V2lzc4gCi6OccCOWRbxMlWCeecrXVTvwqXidTsuTF7TRA0RZguG9wis11qE3Gv9'
+          return toKen
         }
       }
       })
