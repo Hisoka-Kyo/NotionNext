@@ -9,7 +9,7 @@ const CONFIG = {
   // 首页顶部通知条滚动内容，如不需要可以留空 []
   HEO_NOTICE_BAR: [
     { title: '欢迎来到先见AI+EDU', url: 'https://www.xianjianinfo.com/' },
-    { title: '加入知识星球获取全部资源', url: 'https://wx.zsxq.com/group/28882588512111' }
+    { title: '领券加入知识星球获取全部资源', url: 'https://www.xianjianinfo.com/article/20d66738-8b3b-8066-ae6c-fe9df2f067cd' }
   ],
 
   // 英雄区左右侧组件颠倒位置
@@ -22,8 +22,8 @@ const CONFIG = {
   HEO_HERO_TITLE_2: '与人工智能',
   HEO_HERO_TITLE_3: 'XIANJIANINFO.COM',
   HEO_HERO_TITLE_4: '知识星球',
-  HEO_HERO_TITLE_5: '加入星球获取全站资源',
-  HEO_HERO_TITLE_LINK: 'https://wx.zsxq.com/group/28882588512111',
+  HEO_HERO_TITLE_5: '领券加入星球获取全站资源',
+  HEO_HERO_TITLE_LINK: 'https://https://www.xianjianinfo.com/article/20d66738-8b3b-8066-ae6c-fe9df2f067cd',
   // 英雄区遮罩文字
   HEO_HERO_COVER_TITLE: '随便逛逛',
 
@@ -119,8 +119,8 @@ const CONFIG = {
   HEO_SOCIAL_CARD: true, // 是否显示右侧，点击加入社群按钮
   HEO_SOCIAL_CARD_TITLE_1: '知识星球',
   HEO_SOCIAL_CARD_TITLE_2: '快人一步收获全部资源',
-  HEO_SOCIAL_CARD_TITLE_3: '点击加入星球',
-  HEO_SOCIAL_CARD_URL: 'https://wx.zsxq.com/group/28882588512111',
+  HEO_SOCIAL_CARD_TITLE_3: '点击领券加入星球',
+  HEO_SOCIAL_CARD_URL: 'https://www.xianjianinfo.com/article/20d66738-8b3b-8066-ae6c-fe9df2f067cd',
 
   // 底部统计面板文案
   HEO_POST_COUNT_TITLE: '文章数:',
