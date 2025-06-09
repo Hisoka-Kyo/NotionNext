@@ -23,7 +23,7 @@ const CONFIG = {
   HEO_HERO_TITLE_3: 'XIANJIANINFO.COM',
   HEO_HERO_TITLE_4: '知识星球',
   HEO_HERO_TITLE_5: '领券加入星球获取全站资源',
-  HEO_HERO_TITLE_LINK: 'https://https://www.xianjianinfo.com/article/20d66738-8b3b-8066-ae6c-fe9df2f067cd',
+  HEO_HERO_TITLE_LINK: 'www.xianjianinfo.com/article/20d66738-8b3b-8066-ae6c-fe9df2f067cd',
   // 英雄区遮罩文字
   HEO_HERO_COVER_TITLE: '随便逛逛',
 
