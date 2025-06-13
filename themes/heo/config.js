@@ -22,7 +22,7 @@ const CONFIG = {
   HEO_HERO_TITLE_2: '与人工智能',
   HEO_HERO_TITLE_3: 'XIANJIANINFO.COM',
   HEO_HERO_TITLE_4: '知识星球',
-  HEO_HERO_TITLE_5: '领券加入星球获取全站资源',
+  HEO_HERO_TITLE_5: '领券加入星球获取全站资源及PRO',
   HEO_HERO_TITLE_LINK: 'https://www.xianjianinfo.com/article/20d66738-8b3b-8066-ae6c-fe9df2f067cd',
   // 英雄区遮罩文字
   HEO_HERO_COVER_TITLE: '随便逛逛',
@@ -118,7 +118,7 @@ const CONFIG = {
 
   HEO_SOCIAL_CARD: true, // 是否显示右侧，点击加入社群按钮
   HEO_SOCIAL_CARD_TITLE_1: '知识星球',
-  HEO_SOCIAL_CARD_TITLE_2: '快人一步收获全部资源',
+  HEO_SOCIAL_CARD_TITLE_2: '快人一步收获全部资源及PRO',
   HEO_SOCIAL_CARD_TITLE_3: '点击领券加入星球',
   HEO_SOCIAL_CARD_URL: 'https://www.xianjianinfo.com/article/20d66738-8b3b-8066-ae6c-fe9df2f067cd',
 
